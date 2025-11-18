@@ -208,5 +208,35 @@
     "wav": "20251118_120928_nagranie.wav",
     "transcript": "nagranie_20251118_120928.txt",
     "processed_at": "2025-11-18T12:09:28.990474"
+  },
+  "2759a1e785b49ee50acc8fc5dba79592c8a77b9bebc16dc8be958a82fe29cc19": {
+    "orig": "nagranie.webm",
+    "wav": "20251118_163810_nagranie.wav",
+    "transcript": "nagranie_20251118_163810.txt",
+    "processed_at": "2025-11-18T16:38:12.968519"
+  },
+  "fe51cc6afb5ec0771e6e1b226f41003118b49318f75eaddf4b6d8a8ef31cfd78": {
+    "orig": "nagranie.webm",
+    "wav": "20251118_165629_nagranie.wav",
+    "transcript": "nagranie_20251118_165629.txt",
+    "processed_at": "2025-11-18T16:56:30.223877"
+  },
+  "f4d936e596fdb9606de9bcaecdf4c5dd819558dfda2041d5a3a2d9255acd4174": {
+    "orig": "nagranie.webm",
+    "wav": "20251118_170116_nagranie.wav",
+    "transcript": "nagranie_20251118_170116.txt",
+    "processed_at": "2025-11-18T17:01:17.074707"
+  },
+  "77e48ac9f226ca5f62016f8825641fee519537246a36f4582ce369d0a5cef202": {
+    "orig": "nagranie.webm",
+    "wav": "20251118_170354_nagranie.wav",
+    "transcript": "nagranie_20251118_170354.txt",
+    "processed_at": "2025-11-18T17:03:54.743877"
+  },
+  "c47652a1ba63832fd4f488df94521e2c7a6950319960c2b50f306a03376cbfef": {
+    "orig": "nagranie.webm",
+    "wav": "20251118_170411_nagranie.wav",
+    "transcript": "nagranie_20251118_170411.txt",
+    "processed_at": "2025-11-18T17:04:12.632319"
   }
 }

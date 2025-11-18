@@ -5,10 +5,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const statusDiv = document.getElementById('status');
     const analysisFrame = document.getElementById('analysisFrame');
     const previewAudio = document.getElementById('preview');
-    const analyzeDriveBtn = document.getElementById('analyzeDriveBtn');
 
     let mediaRecorder;
     let audioChunks = [];
+
+    // Initially disable the analyze button
+    analyzeBtn.disabled = true;
 
     // Nagrywanie
     startBtn.addEventListener('click', async () => {
@@ -41,6 +43,28 @@ document.addEventListener("DOMContentLoaded", () => {
                     const res = await fetch('/upload_audio', { method: 'POST', body: formData });
                     const result = await res.json();
                     statusDiv.textContent = `✅ Plik wysłany: ${result.saved}`;
+                    
+                    // Poll for summary creation (check every 2 seconds, up to 30 seconds)
+                    let attempts = 0;
+                    const pollInterval = setInterval(async () => {
+                        attempts++;
+                        try {
+                            const checkRes = await fetch('/check_summary');
+                            const checkData = await checkRes.json();
+                            if (checkData.has_summary) {
+                                clearInterval(pollInterval);
+                                analyzeBtn.disabled = false;
+                                statusDiv.textContent = `✅ Plik wysłany: ${result.saved}. Podsumowanie gotowe!`;
+                            }
+                        } catch (err) {
+                            // Ignore polling errors
+                        }
+                        
+                        // Stop polling after 30 seconds
+                        if (attempts >= 15) {
+                            clearInterval(pollInterval);
+                        }
+                    }, 2000);
                 } catch (err) {
                     statusDiv.textContent = `❌ Błąd wysyłki: ${err}`;
                 }
