@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotePsyche - Nagrywanie audio</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 2em; }
+  button { margin: 0.5em; padding: 0.5em 1em; font-size: 1em; }
+  #status, #analysisFrame { margin-top: 1em; }
+  audio { display: block; margin-top: 1em; }
+  #analysisFrame {
+    border: 2px solid #4CAF50;
+    padding: 1em;
+    background: #f9fff9;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+<h1>NotePsyche - Nagrywanie audio</h1>
+
+<button id="startBtn">Rozpocznij nagrywanie</button>
+<button id="stopBtn" disabled>Zakończ nagrywanie</button>
+<button id="analyzeBtn">Analizuj nagranie</button>
+<button id="lastAnalysisBtn" onclick="window.location.href='/last_analysis'">
+  Przejdź do ostatniej analizy
+</button>
+
+
+<div id="status"></div>
+<div id="analysisFrame">Tu pojawi się analiza...</div>
+<audio id="preview" controls style="display:none;"></audio>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+openai
+tiktoken
+requests
+numpy
+fastapi
+uvicorn[standard]
+python-multipart
+pydub
+vosk
+groq
+python-dotenv
+langgraph
