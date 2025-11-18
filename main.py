@@ -2,29 +2,32 @@
 # main.py - FastAPI backend dla NotePsyche z LangGraph Session Manager
 
 import hashlib
-import os, io, json, datetime, glob, wave
+import os, io, json, datetime, wave, shutil
 from typing import Optional
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydub import AudioSegment
 import vosk
 from groq import Groq
-from pydrive2.auth import GoogleAuth
-from pydrive2.drive import GoogleDrive
-from gdrive_fetch import fetch_notes_from_drive
-
 from dotenv import load_dotenv
 from session_manager import SessionManager
 
 load_dotenv()
 
 # === KONFIGURACJA ===
+DATABASE_URL = os.getenv("DATABASE_URL")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 NOTES_FOLDER = os.path.join(BASE_DIR, "notes_data")
 SUMMARY_FOLDER = os.path.join(BASE_DIR, "summary_data")
 os.makedirs(NOTES_FOLDER, exist_ok=True)
 os.makedirs(SUMMARY_FOLDER, exist_ok=True)
+
+# ensure processed.json exists (we may reset it for new sessions)
+PROCESSED_PATH = os.path.join(BASE_DIR, "processed.json")
+if not os.path.exists(PROCESSED_PATH):
+    with open(PROCESSED_PATH, "w", encoding="utf-8") as f:
+        json.dump({}, f)
 
 CHECKPOINT_DIR = os.path.join(BASE_DIR, "checkpoints")
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
@@ -32,12 +35,43 @@ os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 # Session manager (uses langgraph if available)
 SESSION_ID = os.environ.get("SESSION_ID", "default")
 session_manager = SessionManager(checkpoints_dir=CHECKPOINT_DIR)
-session_manager.create_session(SESSION_ID)
 
-PROCESSED_PATH = os.path.join(BASE_DIR, "processed.json")
-if not os.path.exists(PROCESSED_PATH):
-    with open(PROCESSED_PATH, "w", encoding="utf-8") as f:
-        json.dump({}, f)
+def _cleanup_user_files(clean_dirs, processed_path):
+    """Remove files inside the given directories and reset processed.json.
+
+    This deletes only the contents of the configured folders, not the folders themselves.
+    """
+    for d in clean_dirs:
+        try:
+            if not os.path.exists(d):
+                continue
+            for entry in os.listdir(d):
+                entry_path = os.path.join(d, entry)
+                try:
+                    if os.path.islink(entry_path) or os.path.isfile(entry_path):
+                        os.remove(entry_path)
+                    elif os.path.isdir(entry_path):
+                        shutil.rmtree(entry_path)
+                except Exception as e:
+                    print(f"Warning: could not remove {entry_path}: {e}")
+        except Exception as e:
+            print(f"Warning: could not cleanup directory {d}: {e}")
+
+    # reset processed.json
+    try:
+        with open(processed_path, "w", encoding="utf-8") as f:
+            json.dump({}, f)
+    except Exception as e:
+        print(f"Warning: could not reset processed file {processed_path}: {e}")
+
+# create session and perform cleanup when a new session is created
+created = session_manager.create_session(SESSION_ID)
+if created:
+    _cleanup_user_files([
+        NOTES_FOLDER,
+        SUMMARY_FOLDER,
+        os.path.join(BASE_DIR, "drive_notes")
+    ], PROCESSED_PATH)
 
 VOSK_MODEL_PATH = os.environ.get("VOSK_MODEL_PATH", os.path.join(BASE_DIR, "vosk-model-small-pl-0.22"))
 if not os.path.exists(VOSK_MODEL_PATH):
