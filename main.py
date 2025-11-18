@@ -316,3 +316,23 @@ async def last_analysis():
     <pre style='white-space:pre-wrap; border:1px solid #ccc; padding:1em; margin-top:1em;'>{safe_html}</pre>
     </body></html>
     """
+
+
+@app.get("/check_summary")
+async def check_summary():
+    """Check if a recent summary file exists (created in last 60 seconds)."""
+    try:
+        files = [f for f in os.listdir(SUMMARY_FOLDER) if f.startswith("summary_") and f.endswith(".txt")]
+        if not files:
+            return {"has_summary": False}
+        
+        # Get the most recently modified summary file
+        latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(SUMMARY_FOLDER, f)))
+        latest_time = os.path.getmtime(os.path.join(SUMMARY_FOLDER, latest_file))
+        current_time = datetime.datetime.now().timestamp()
+        
+        # Consider a summary "recent" if created within the last 60 seconds
+        is_recent = (current_time - latest_time) < 60
+        return {"has_summary": is_recent, "file": latest_file}
+    except Exception:
+        return {"has_summary": False}
