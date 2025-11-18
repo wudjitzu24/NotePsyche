@@ -45,11 +45,15 @@ class SessionManager:
         with open(self.metadata_path, "w", encoding="utf-8") as f:
             json.dump(meta, f, indent=2, ensure_ascii=False)
 
-    def create_session(self, session_id: str, meta: Optional[Dict[str, Any]] = None) -> None:
+    def create_session(self, session_id: str, meta: Optional[Dict[str, Any]] = None) -> bool:
+        """Create a new session record.
+
+        Returns True if the session was newly created, False if it already existed.
+        """
         meta = meta or {}
         metadata = self._load_metadata()
         if session_id in metadata:
-            return
+            return False
         now = datetime.datetime.now().isoformat()
         metadata[session_id] = {"created": now, "last_updated": now, "info": meta}
         self._save_metadata(metadata)
@@ -58,6 +62,7 @@ class SessionManager:
         if not os.path.exists(path):
             with open(path, "w", encoding="utf-8") as f:
                 json.dump({}, f, indent=2, ensure_ascii=False)
+        return True
 
     def list_sessions(self):
         return list(self._load_metadata().keys())
