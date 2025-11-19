@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
-# main.py - FastAPI backend dla NotePsyche z LangGraph Session Manager
-
 import hashlib
 import os, io, json, datetime, wave, shutil
 from typing import Optional
-from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
+from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, Depends
+from fastapi.security import OAuth2PasswordRequestForm
+from auth import register_user, authenticate_user, create_access_token, get_current_user
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydub import AudioSegment
@@ -218,7 +217,7 @@ def analyze_single_summary(summary_path: str) -> str:
     return analysis_text
 
 
-def process_uploaded_audio(saved_path: str, orig_name: str, compute_summary: bool = True):
+def process_uploaded_audio(saved_path: str, orig_name: str, compute_summary: bool = True, session_id: Optional[str] = None):
     try:
         wav_bytes = convert_to_wav_bytes(open(saved_path, "rb").read())
     except Exception as e:
@@ -252,10 +251,11 @@ def process_uploaded_audio(saved_path: str, orig_name: str, compute_summary: boo
         save_processed(processed)
         try:
             # update session checkpoint with list of processed file hashes
+            # save under provided session id if available (default handled by save_checkpoint)
             save_checkpoint({
                 "processed_files": list(processed.keys()),
                 "last_processed": datetime.datetime.now().isoformat()
-            })
+            }, session_id=session_id or SESSION_ID)
         except Exception:
             pass
     except Exception as e:
@@ -291,13 +291,65 @@ async def index():
     return HTMLResponse("<h1>NotePsyche</h1><p>Brak pliku static/index.html</p>")
 
 
+@app.post("/register")
+async def register(form: OAuth2PasswordRequestForm = Depends()):
+    username = form.username
+    password = form.password
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="Username and password required")
+    created = register_user(username, password)
+    if not created:
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    # create session for the new user and clean previous files
+    try:
+        was_new = session_manager.create_session(username)
+        if was_new:
+            _cleanup_user_files([
+                NOTES_FOLDER,
+                SUMMARY_FOLDER,
+                os.path.join(BASE_DIR, "drive_notes")
+            ], PROCESSED_PATH)
+    except Exception:
+        pass
+
+    access_token = create_access_token({"sub": username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.post("/login")
+async def login(form: OAuth2PasswordRequestForm = Depends()):
+    username = form.username
+    password = form.password
+    user = authenticate_user(username, password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    # ensure session exists and cleanup if this is the first time
+    try:
+        was_new = session_manager.create_session(username)
+        if was_new:
+            _cleanup_user_files([
+                NOTES_FOLDER,
+                SUMMARY_FOLDER,
+                os.path.join(BASE_DIR, "drive_notes")
+            ], PROCESSED_PATH)
+    except Exception:
+        pass
+
+    access_token = create_access_token({"sub": username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
 @app.post("/upload_audio")
-async def upload_audio(background_tasks: BackgroundTasks, file: UploadFile = File(...), summary: Optional[bool] = True):
+async def upload_audio(background_tasks: BackgroundTasks, file: UploadFile = File(...), summary: Optional[bool] = True, current_user: dict = Depends(get_current_user)):
     data = await file.read()
     if not data: raise HTTPException(status_code=400, detail="Brak danych audio")
     saved_path = os.path.join(NOTES_FOLDER, f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
     with open(saved_path, "wb") as f: f.write(data)
-    background_tasks.add_task(process_uploaded_audio, saved_path, file.filename, summary)
+    # pass session id (username) so checkpointing is per-user
+    username = current_user.get("username") if isinstance(current_user, dict) else None
+    background_tasks.add_task(process_uploaded_audio, saved_path, file.filename, summary, username)
     return {"status": "ok", "saved": file.filename}
 
 

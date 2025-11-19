@@ -1,0 +1,17 @@
+{
+  "testuser123": {
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$kJJyTklpLUXI+X8PQUhJiQ$IhIe4RheuYAGMTNWNnqkMbKU6OMa+jLaqX8szLhUVJs"
+  },
+  "Wudjitzu": {
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$Wct5zxlj7F3r/T/H2DuH0A$SxGqMnOhIEAibmpNIhbqhOsxUhzhSxuv3q9F6QA9P94"
+  },
+  "wudjitzuu": {
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$3xvjPIdQau1da00JoVSKsQ$N1dRKvyYE2DJYveOlU8dJKel5+plulYVOoMu+bp0AO4"
+  },
+  "wudjitzu": {
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$8773vte6d07pvTcGoPR+zw$zJGRGEafM4CzAS2EwGW/hdZxRKp+E2ra6cty+PaxhRQ"
+  },
+  "wlodar": {
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$tBZiTEnJufc+B4DQWiuF0A$DplYdtQRFta+q0wTiac3Bhun2Au/KbdtiwP3IXmDnLM"
+  }
+}

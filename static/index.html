@@ -5,38 +5,418 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NotePsyche - Nagrywanie audio</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 2em; }
-  button { margin: 0.5em; padding: 0.5em 1em; font-size: 1em; }
-  #status, #analysisFrame { margin-top: 1em; }
-  audio { display: block; margin-top: 1em; }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    color: white;
+  }
+  
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  #authContainer {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    min-width: 280px;
+    text-align: right;
+  }
+  
+  #authStatus {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+  }
+  
+  #authButtons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  #authButtons button {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  #loginRegisterBtn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+  
+  #loginRegisterBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+  
+  #logoutBtn {
+    background: #ff6b6b;
+    color: white;
+  }
+  
+  #logoutBtn:hover {
+    background: #ff5252;
+    transform: translateY(-2px);
+  }
+  
+  main {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    padding: 2.5rem;
+  }
+  
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  button {
+    padding: 1rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  #startBtn {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+  }
+  
+  #startBtn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+  }
+  
+  #startBtn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  
+  #stopBtn {
+    background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
+    color: white;
+  }
+  
+  #stopBtn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(244, 67, 54, 0.3);
+  }
+  
+  #stopBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  #analyzeBtn {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: white;
+  }
+  
+  #analyzeBtn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
+  }
+  
+  #analyzeBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .nav-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  
+  #lastAnalysisBtn, #listAnalysesBtn {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+  }
+  
+  #lastAnalysisBtn:hover, #listAnalysesBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.3);
+  }
+  
+  #status {
+    padding: 1rem;
+    margin: 2rem 0 1rem 0;
+    border-radius: 8px;
+    background: #f5f5f5;
+    border-left: 4px solid #667eea;
+    min-height: 1.5rem;
+    font-weight: 500;
+  }
+  
   #analysisFrame {
-    border: 2px solid #4CAF50;
-    padding: 1em;
-    background: #f9fff9;
-    max-height: 400px;
+    border: 2px solid #667eea;
+    padding: 1.5rem;
+    background: #f9f9ff;
+    max-height: 500px;
     overflow-y: auto;
     white-space: pre-wrap;
+    border-radius: 10px;
+    margin-top: 1rem;
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.6;
+  }
+  
+  audio {
+    display: block;
+    margin-top: 1.5rem;
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  /* Auth Modal */
+  #authModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #authModal.show {
+    display: flex;
+  }
+  
+  #authModalContent {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    max-width: 420px;
+    width: 90%;
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(30px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  #authModalContent h2 {
+    margin: 0 0 1.5rem 0;
+    color: #333;
+    font-size: 1.8rem;
+  }
+  
+  #authModalContent input {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  
+  #authModalContent input:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+  
+  #authSubmitBtn {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.9rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  #authSubmitBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  }
+  
+  #authError {
+    color: #ff6b6b;
+    margin-top: 1rem;
+    font-weight: 500;
+    text-align: center;
+  }
+  
+  #authToggleBtn {
+    width: 100%;
+    background: none;
+    border: 2px solid #667eea;
+    color: #667eea;
+    cursor: pointer;
+    padding: 0.7rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  #authToggleBtn:hover {
+    background: #667eea;
+    color: white;
+  }
+  
+  #authModalClose {
+    float: right;
+    cursor: pointer;
+    font-size: 2rem;
+    color: #999;
+    transition: color 0.3s ease;
+  }
+  
+  #authModalClose:hover {
+    color: #333;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container {
+      padding: 1rem;
+    }
+    
+    header {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+    }
+    
+    #authContainer {
+      width: 100%;
+      text-align: center;
+    }
+    
+    main {
+      padding: 1.5rem;
+    }
+    
+    .controls {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 </head>
 <body>
-<h1>NotePsyche - Nagrywanie audio</h1>
+<div class="container">
+  <header>
+    <h1>🎙️ NotePsyche</h1>
+    <div id="authContainer">
+      <div id="authStatus">Zaloguj się, aby nagrywać</div>
+      <div id="authButtons">
+        <button id="loginRegisterBtn">Zaloguj się</button>
+        <button id="logoutBtn" style="display:none;">Wyloguj się</button>
+      </div>
+    </div>
+  </header>
 
-<button id="startBtn">Rozpocznij nagrywanie</button>
-<button id="stopBtn" disabled>Zakończ nagrywanie</button>
-<button id="analyzeBtn">Analizuj nagranie</button>
-<button id="lastAnalysisBtn" onclick="window.location.href='/last_analysis'">
-  Przejdź do ostatniej analizy
-</button>
-<button id="listAnalysesBtn" onclick="window.location.href='/list_analyses'">
-  Przejdź do listy analiz
-</button>
+  <div id="authModal">
+    <div id="authModalContent">
+      <span id="authModalClose">&times;</span>
+      <h2 id="authModalTitle">Logowanie</h2>
+      <input type="text" id="authUsername" placeholder="Nazwa użytkownika" />
+      <input type="password" id="authPassword" placeholder="Hasło" />
+      <button id="authSubmitBtn">Zaloguj się</button>
+      <button id="authToggleBtn">Nie masz konta? Zarejestruj się</button>
+      <div id="authError"></div>
+    </div>
+  </div>
 
+  <main>
+    <div class="controls">
+      <button id="startBtn">▶️ Rozpocznij nagrywanie</button>
+      <button id="stopBtn" disabled>⏹️ Zakończ nagrywanie</button>
+      <button id="analyzeBtn">📊 Analizuj nagranie</button>
+    </div>
 
-<div id="status"></div>
-<div id="analysisFrame">Tu pojawi się analiza...</div>
-<audio id="preview" controls style="display:none;"></audio>
+    <div id="status"></div>
+    
+    <div class="nav-buttons">
+      <button id="lastAnalysisBtn">📄 Ostatnia analiza</button>
+      <button id="listAnalysesBtn">📋 Lista analiz</button>
+    </div>
+
+    <div id="analysisFrame">Tu pojawi się analiza...</div>
+    <audio id="preview" controls></audio>
+  </main>
+</div>
 
 <script src="/static/app.js"></script>
+</body>
+</html>
+
+<script>
+  console.log('Page loaded, checking DOM...');
+  console.log('loginRegisterBtn:', document.getElementById('loginRegisterBtn') ? 'found' : 'NOT FOUND');
+  console.log('authModal:', document.getElementById('authModal') ? 'found' : 'NOT FOUND');
+  console.log('authSubmitBtn:', document.getElementById('authSubmitBtn') ? 'found' : 'NOT FOUND');
+</script>
+<script src="/static/app_minimal.js"></script>
+<script>
+  console.log('app_minimal.js loading complete');
+</script>
 </body>
 </html>
