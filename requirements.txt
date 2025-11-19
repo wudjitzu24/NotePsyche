@@ -10,3 +10,6 @@ vosk
 groq
 python-dotenv
 langgraph
+PyJWT
+passlib[argon2]
+argon2-cffi
